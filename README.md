@@ -30,6 +30,7 @@ The hour-by-hour log is in [docs/progress.md](docs/progress.md). No internet res
 | Author (`id author`) | `Fable 5.2` |
 | Executable | `final/Fable52chess24hrs.exe` (5.3 MB, imports only `KERNEL32.dll` and `msvcrt.dll`) |
 | Language | C++20, about 2,200 lines for the engine, 370 for the network trainer, 80 for the SPSA tuner |
+| Official rating | **3542 ± 15** on the CCRL Blitz scale at 10+0.1 (2,220 games; see [Official results](#official-results)) |
 
 C++ was chosen over C for `std::thread`, `std::atomic` and `std::string` at no cost in generated code;
 the engine uses nothing beyond the standard library and `<immintrin.h>`.
@@ -257,4 +258,74 @@ official result could reasonably land 50 Elo or more away from this estimate in 
 
 ## Official results
 
-*(to be filled in after the rating match)*
+**3542 ± 15 Elo (95% CI) on the CCRL Blitz scale**, from 2,220 games played on 10 November 2026, after
+the run. That is 81 Elo above the next engine built under the same benchmark and the highest of the
+nine rated so far.
+
+The engine had no time loss, disconnect, illegal move or fastchess warning in any of the 2,220 games.
+
+### Conditions
+
+fastchess 1.8.2, 10 s + 0.1 s, `timemargin=200`, one thread, 64 MB hash, UHO openings (8 plies, both
+colours), 12 concurrent games on an Intel Core Ultra 9 285H. Games were adjudicated: resign after 3
+moves at ±600 cp from both engines, draw after move 40 with 8 moves inside ±20 cp, 250 moves maximum.
+Ratings come from an anchored maximum-likelihood fit in which the reference engines are fixed at their
+CCRL Blitz ratings and every game involves at least one of the AI-written engines.
+
+### All engines from this benchmark
+
+| Engine | Elo | 95% CI | Games |
+|---|---:|:---:|---:|
+| **Fable 5.2 chess 24hrs** | **3542** | ±15 | 2220 |
+| Opus 5.5 chess 24hrs | 3461 | ±15 | 2340 |
+| Sonnet 5.5 chess 24hrs | 3415 | ±15 | 2340 |
+| Fable 5.1 chess 24hrs | 3254 | ±19 | 1680 |
+| Opus 5 chess 24hrs | 3228 | ±19 | 1580 |
+| Astra 6 chess 24hrs | 3143 | ±19 | 1520 |
+| Fable 5 chess 24hrs | 3045 | ±21 | 1300 |
+| Haiku 5.5 chess 24hrs | 2765 | ±24 | 1060 |
+| Sonnet 5 chess 24hrs | 2703 | ±23 | 1360 |
+
+### Head-to-head
+
+| Opponent | CCRL Blitz | +W | =D | −L | Score | Implied Elo |
+|---|---:|---:|---:|---:|---:|---:|
+| Coda 0.9.4 | 3638 | 1 | 41 | 118 | 13.4% | 3314 |
+| Clover 9.0 | 3620 | 2 | 50 | 108 | 16.9% | 3343 |
+| Elixir | 3567 | 24 | 85 | 51 | 41.6% | 3508 |
+| Patricia 5.0 | 3539 | 65 | 69 | 66 | 49.8% | 3537 |
+| Sirius 9.0 | 3528 | 75 | 72 | 53 | 55.5% | 3566 |
+| Carp 3.0.1 | 3525 | 57 | 71 | 32 | 57.8% | 3580 |
+| Tucano 12.00 | 3491 | 71 | 101 | 28 | 60.8% | 3567 |
+| Leorik 3.2.1 | 3490 | 55 | 70 | 35 | 56.2% | 3534 |
+| Marvin 6.3.0 | 3458 | 95 | 78 | 27 | 67.0% | 3581 |
+| Stash 37 | 3424 | 127 | 62 | 11 | 79.0% | 3654 |
+| Opus 5.5 chess 24hrs | (3461) | 59 | 89 | 12 | 64.7% | – |
+| Sonnet 5.5 chess 24hrs | (3415) | 91 | 59 | 10 | 75.3% | – |
+| Fable 5.1 chess 24hrs | (3254) | 87 | 10 | 3 | 92.0% | – |
+
+The single win against Coda is a game in which Coda stopped responding; it is worth under 1 Elo in the fit.
+
+### How firm the number is
+
+The figure depends on which reference engines are trusted. Clover and Coda (and Motor, used for an
+earlier engine) play roughly 250 Elo above their CCRL Blitz ratings relative to the other anchors under
+these conditions, so the 14–17% scored against them pulls the fit down.
+
+| Fit | Elo |
+|---|---:|
+| All games (the official figure) | 3542 ± 15 |
+| Without Clover and Coda | 3571 ± 17 |
+| Anchor games only | 3532 ± 16 |
+| Anchor games only, without Clover and Coda | 3565 ± 18 |
+
+Against the other eight anchors the implied rating runs from 3508 (Elixir) to 3654 (Stash 37).
+
+### Against my own estimate
+
+I predicted about 3590 (3550–3630) from matches against Stash 37 alone. The official 3542 is just below
+that range; the fit without the two off-scale anchors, 3571, is inside it. The 79.0% scored against
+Stash 37 here matches what I measured (72.5–74.5%), and it is the most favourable of all the anchors:
+the Stash ladder flatters an engine that was tested only against it, which is the transfer error the
+estimate warned about and under-sized. Strength against the wider field is about 20–50 Elo lower than
+the Stash-only figure.
