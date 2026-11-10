@@ -1,0 +1,1 @@
+v7n6: net6 = 256-wide, lambda 1.0, 20 epochs on 32.5M positions (g1-g5). +31+/-26 vs n5 (300 games, fixed 100k nodes); 57.5% vs stash-37 (100 games 10+0.1) => ~3475. Installed in final/ 21:06. Same engine code as v7n5.

@@ -1,0 +1,15 @@
+
+Finished game 172 (B_stash-37.0-windows-x86_64-bmi2 vs A_v12k1): 0-1 {White loses on time (15ms overrun)}
+Finished game 176 (B_stash-37.0-windows-x86_64-bmi2 vs A_v12k1): 0-1 {White loses on time (1ms overrun)}
+Finished game 180 (B_stash-37.0-windows-x86_64-bmi2 vs A_v12k1): 0-1 {White loses on time (28ms overrun)}
+Finished game 186 (B_stash-37.0-windows-x86_64-bmi2 vs A_v12k1): 0-1 {White loses on time (14ms overrun)}
+Finished game 189 (A_v12k1 vs B_stash-37.0-windows-x86_64-bmi2): 1-0 {Black loses on time (10ms overrun)}
+Finished game 197 (A_v12k1 vs B_stash-37.0-windows-x86_64-bmi2): 1-0 {Black loses on time (12ms overrun)}
+Results of A_v12k1 vs B_stash-37.0-windows-x86_64-bmi2 (10+0.1, 1t, 256MB, UHO.pgn):
+Elo: 278.55 +/- 46.36, nElo: 436.21 +/- 48.15
+Games: 200, Wins: 146, Losses: 13, Draws: 41, Points: 166.5 (83.25 %)
+Ptnml(0-2): [0, 0, 17, 33, 50], WL/DD Ratio: 3.25
+  Timeouts: 66
+  Crashed: 0
+
+

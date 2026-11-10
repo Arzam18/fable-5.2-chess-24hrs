@@ -1,0 +1,1 @@
+v10k1: king input buckets (5) x 768 -> 256 x2 -> 1x8. k1 = net9 expanded + 8 epochs on 147M quiet positions. +60+/-23 vs n9 (300 games fixed nodes); 73.5% vs stash-37 (100 games, 10+0.1) => ~3600. Build: set NNKB=5 then build.bat v10k1 build\k1_256.nnue. Installed in final/ 04:38.

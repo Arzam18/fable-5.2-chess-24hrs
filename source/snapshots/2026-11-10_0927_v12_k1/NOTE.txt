@@ -1,0 +1,1 @@
+v12k1: defaults = SPSA round 2 at iteration 325 (55 params; +56+/-21 vs round-1 defaults, 508 games fixed 100k nodes) + tmFallMul 10 (falling-score soft-time scaling) + 8MB stack. Net k1 (5 king buckets). +38+/-21 vs v10k1 at 10+0.1 (400 games, no time losses). Compliance passed. Installed in final/ 09:27. Estimate ~3640. Build: set NNKB=5 & build.bat v12k1 build\k1_256.nnue

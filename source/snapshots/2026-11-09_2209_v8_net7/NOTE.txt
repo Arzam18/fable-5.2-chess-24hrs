@@ -1,0 +1,1 @@
+v8n7: net7 = net6 warm-started, 8 epochs (lr 5e-4 -> 3e-5), lambda 1.0, on 55.9M positions (g1-g6). +26+/-27 vs n6 (300 games, fixed 100k nodes). Engine code = v7 + datagen writes flagged noisy positions. Installed in final/ 22:09. Estimated ~3500 (n6 measured ~3475 vs stash-37).

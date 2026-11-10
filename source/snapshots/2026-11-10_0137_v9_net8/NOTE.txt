@@ -1,0 +1,1 @@
+v9n8: search defaults = SPSA round 1 values (26 params, ~450 iterations x 16 games at fixed 100k nodes): +52+/-24 vs old defaults (300 games fixed nodes). More constants made tunable (bench-identical refactor verified before changing defaults). Net 8. 65% vs stash-37 (100 games 10+0.1) => ~3530. Installed in final/ 01:37.

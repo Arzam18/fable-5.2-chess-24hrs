@@ -1,0 +1,50 @@
+# Build artefacts
+source/build/
+*.o
+*.obj
+*.a
+*.lib
+*.pdb
+*.gcda
+*.gcno
+*.profraw
+*.profdata
+
+# Match output and logs
+*.pgn
+*.log
+!resources/fastchess/UHO.pgn
+
+# Large tuning / temp data
+*.bin
+*.epd.gz
+*.tmp
+
+# Editor / OS noise
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# ---- added after the Fable 5.2 run ----
+# Self-play training data (about 6 GB) and its logs
+source/data/
+
+# Generated copy of the embedded network (build.bat copies it from source/nets/)
+source/src/net.bin
+
+# Float training checkpoints (only needed to continue training; the data is not in the repo either)
+*.f32
+
+# Intermediate binaries kept in the snapshots (the source and notes of each snapshot are tracked)
+source/snapshots/**/*.exe
+source/snapshots/**/*.nnue
+
+# Scratch test inputs and tool state; match summaries (*.out) and SPSA parameter files are kept
+source/tests/t[0-9]*.txt
+source/tests/*.err
+source/tests/spsa_iter.txt
+source/tests/clean_bench.out
+
+# fastchess state file written to the working directory
+/config.json

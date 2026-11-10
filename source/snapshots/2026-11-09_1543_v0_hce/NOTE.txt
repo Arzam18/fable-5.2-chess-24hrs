@@ -1,0 +1,1 @@
+v0: bitboards+PEXT, copy-make, PVS/TT/NMP/LMR/SE/histories, PeSTO eval. Perft suite d6 exact. 75% vs stash-25 (100 games, 10+0.1) => ~3130.

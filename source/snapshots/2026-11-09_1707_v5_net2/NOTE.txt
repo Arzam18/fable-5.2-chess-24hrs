@@ -1,0 +1,1 @@
+v5n2: NNUE 768->256x2->1x8 trained on 7.5M HCE-selfplay positions (lambda 0.5, 20 epochs); search feature bundle; new UCI loop (search on reading thread). +51+/-42 vs v5-HCE (200 games 5+0.05); 60% vs stash-30 (100 games 10+0.1) => ~3240. Installed in final/. (src here is v6: adds final info line when aborted iteration changes best move.)

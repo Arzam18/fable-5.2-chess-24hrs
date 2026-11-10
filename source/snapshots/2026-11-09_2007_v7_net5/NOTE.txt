@@ -1,0 +1,1 @@
+v7n5: net5 = 768->256x2->1x8, trained lambda=1.0 (pure search score), 20 epochs, on g1+g2+g3 (22.8M positions); fine quantization (QA 1020, QB 1024). 53% vs stash-37 (100 games, 10+0.1) => ~3445. Net tournament at fixed 100k nodes: lambda 1.0 +117, 0.8 +92, 0.5 -128 (256) / -81 (128). Installed in final/ 20:07.

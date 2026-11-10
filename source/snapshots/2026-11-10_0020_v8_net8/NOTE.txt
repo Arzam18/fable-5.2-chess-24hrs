@@ -1,0 +1,1 @@
+v8n8: net8 = net7 warm-started, 8 epochs, lambda 1.0, on 87.5M quiet positions (g1-g7). Check vs n7 at fixed 100k nodes: see lab7.log (+44+/-34 after 200 games). Installed in final/ 00:20.

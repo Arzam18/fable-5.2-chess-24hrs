@@ -1,0 +1,1 @@
+v14k1 (FINAL ENTRY): v13 with seeQuietMul 12->8 and seeNoisyMul 72->79 (the two SPSA values my default-update script had skipped). +3.5+/-15 vs v13k1 at 10+0.1 (600 games, no incidents). Compliance passed; imports only KERNEL32/msvcrt. Installed in final/ 14:36. Build: set NNKB=5 & source\build.bat Fable52chess24hrs nets\k1_256.nnue
