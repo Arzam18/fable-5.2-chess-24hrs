@@ -13,14 +13,27 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Check required NNUE network
+        shell: bash
+        run: |
+          set -euo pipefail
+          NET="source/nets/k1_256.nnue"
+          if [[ ! -s "$NET" ]]; then
+            echo "::error file=$NET::Required Fable 5.2 NNUE network is missing or empty."
+            echo "Add the repository's original source/nets/k1_256.nnue before building." >&2
+            exit 1
+          fi
+          echo "PASS: required NNUE network is present ($(stat -c%s "$NET") bytes)."
+
       - name: Install Android NDK r27c
         shell: bash
         run: |
           set -euo pipefail
-          curl -fL --retry 3 --retry-delay 2 \\
-            https://dl.google.com/android/repository/android-ndk-r27c-linux.zip \\
-            -o "$RUNNER_TEMP/android-ndk-r27c-linux.zip"
-          echo '090e8083a715fdb1a3e402d0763c388abb03fb4e  '"$RUNNER_TEMP/android-ndk-r27c-linux.zip" | sha1sum -c -
+          NDK_URL="https://dl.google.com/android/repository/android-ndk-r27c-linux.zip"
+          NDK_ZIP="$RUNNER_TEMP/android-ndk-r27c-linux.zip"
+          echo "Downloading Android NDK r27c from: $NDK_URL"
+          curl --fail --show-error --location --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 --max-time 1800 --output "$NDK_ZIP" "$NDK_URL"
+          echo '090e8083a715fdb1a3e402d0763c388abb03fb4e  '"$NDK_ZIP" | sha1sum -c -
           mkdir -p "$RUNNER_TEMP/android-ndk"
           unzip -q "$RUNNER_TEMP/android-ndk-r27c-linux.zip" -d "$RUNNER_TEMP/android-ndk"
           echo "ANDROID_NDK_HOME=$RUNNER_TEMP/android-ndk/android-ndk-r27c" >> "$GITHUB_ENV"
