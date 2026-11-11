@@ -9,8 +9,8 @@ extern u64* bishopPtr[64];
 
 void initAttacks();
 
-inline u64 rookAttacks(int s, u64 occ) { return rookPtr[s][_pext_u64(occ, rookMask[s])]; }
-inline u64 bishopAttacks(int s, u64 occ) { return bishopPtr[s][_pext_u64(occ, bishopMask[s])]; }
+inline u64 rookAttacks(int s, u64 occ) { return rookPtr[s][pext64(occ, rookMask[s])]; }
+inline u64 bishopAttacks(int s, u64 occ) { return bishopPtr[s][pext64(occ, bishopMask[s])]; }
 inline u64 queenAttacks(int s, u64 occ) { return rookAttacks(s, occ) | bishopAttacks(s, occ); }
 inline u64 pieceAttacks(int pt, int s, u64 occ) {
     switch (pt) {

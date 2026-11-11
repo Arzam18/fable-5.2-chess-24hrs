@@ -30,6 +30,25 @@ constexpr int SCORE_INF = 32001;
 constexpr int SCORE_NONE = 32002;
 constexpr int SCORE_MATE_IN_MAX = SCORE_MATE - MAX_PLY - 1;
 
+// Portable parallel-bit extraction for PEXT-indexed slider attack tables.
+// Use the x86 BMI2 instruction when the translation unit is built for it;
+// AArch64 and other targets use the exact software equivalent.
+inline u64 pext64(u64 value, u64 mask) {
+#if defined(__BMI2__) && (defined(__x86_64__) || defined(_M_X64))
+    return _pext_u64(value, mask);
+#else
+    u64 result = 0;
+    u64 resultBit = 1;
+    while (mask) {
+        const u64 lowestBit = mask & (~mask + 1);
+        if (value & lowestBit) result |= resultBit;
+        mask &= mask - 1;
+        resultBit <<= 1;
+    }
+    return result;
+#endif
+}
+
 inline int lsb(u64 b) { return __builtin_ctzll(b); }
 inline int popcount(u64 b) { return __builtin_popcountll(b); }
 inline int poplsb(u64& b) { int s = lsb(b); b &= b - 1; return s; }

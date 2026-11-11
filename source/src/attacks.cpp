@@ -54,14 +54,14 @@ void initAttacks() {
         rookPtr[s] = rp;
         u64 sub = 0;
         do {
-            rp[_pext_u64(sub, rookMask[s])] = slide(s, sub, rookDirs);
+            rp[pext64(sub, rookMask[s])] = slide(s, sub, rookDirs);
             sub = (sub - rookMask[s]) & rookMask[s];
         } while (sub);
         rp += 1ULL << popcount(rookMask[s]);
         bishopPtr[s] = bp;
         sub = 0;
         do {
-            bp[_pext_u64(sub, bishopMask[s])] = slide(s, sub, bishopDirs);
+            bp[pext64(sub, bishopMask[s])] = slide(s, sub, bishopDirs);
             sub = (sub - bishopMask[s]) & bishopMask[s];
         } while (sub);
         bp += 1ULL << popcount(bishopMask[s]);
