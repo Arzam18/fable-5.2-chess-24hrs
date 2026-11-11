@@ -25,15 +25,35 @@ struct TT {
     u8 gen = 0;
 
     ~TT() { release(); }
-    void release() { if (table) { _mm_free(table); table = nullptr; } }
+    void release() {
+        if (!table) return;
+#if defined(_WIN32)
+        _aligned_free(table);
+#else
+        free(table);
+#endif
+        table = nullptr;
+    }
     void resize(u64 mb) {
         release();
         count = mb * 1024 * 1024 / sizeof(TTCluster);
         if (count < 1024) count = 1024;
-        table = (TTCluster*)_mm_malloc(count * sizeof(TTCluster), 64);
+#if defined(_WIN32)
+        table = (TTCluster*)_aligned_malloc(count * sizeof(TTCluster), 64);
+#else
+        void* allocation = nullptr;
+        if (posix_memalign(&allocation, 64, count * sizeof(TTCluster)) == 0)
+            table = static_cast<TTCluster*>(allocation);
+        else
+            table = nullptr;
+#endif
+        if (!table) { count = 0; return; }
         clear();
     }
-    void clear() { memset((void*)table, 0, count * sizeof(TTCluster)); gen = 0; }
+    void clear() {
+        if (table) memset((void*)table, 0, count * sizeof(TTCluster));
+        gen = 0;
+    }
     void newSearch() { gen = (gen + 1) & 31; }
     TTCluster* cluster(u64 key) const { return &table[(u64)(((unsigned __int128)key * count) >> 64)]; }
     void prefetch(u64 key) const { __builtin_prefetch(cluster(key)); }

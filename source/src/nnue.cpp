@@ -5,7 +5,11 @@
 #include <vector>
 #include <algorithm>
 
+#if defined(_WIN32)
 __asm__(".section .rdata,\"dr\"\n.balign 64\n.globl g_netData\ng_netData:\n.incbin \"net.bin\"\n.globl g_netEnd\ng_netEnd:\n.byte 0\n.text\n");
+#else
+__asm__(".section .rodata\n.balign 64\n.globl g_netData\ng_netData:\n.incbin \"net.bin\"\n.globl g_netEnd\ng_netEnd:\n.byte 0\n.text\n");
+#endif
 extern "C" const unsigned char g_netData[];
 extern "C" const unsigned char g_netEnd[];
 
@@ -77,14 +81,21 @@ static inline int featIdx(int persp, int ksq, int pc, int sq) {
 
 void refresh(Accumulator& acc, const Position& pos, int persp) {
     i16* __restrict d = acc.v[persp];
-    alignas(32) i32 dummy = 0; (void)dummy;
     memcpy(d, B0, sizeof(B0));
     int ksq = pos.kingSq(persp);
     u64 b = pos.occ();
     while (b) {
         int sq = poplsb(b);
         const i16* __restrict r = &W0[featIdx(persp, ksq, pos.board[sq], sq)];
+#if FABLE_ARM_NEON
+        static_assert(NN_H % 8 == 0, "NEON NNUE width must be divisible by eight");
+        for (int i = 0; i < NN_H; i += 8) {
+            int16x8_t sum = vaddq_s16(vld1q_s16(d + i), vld1q_s16(r + i));
+            vst1q_s16(d + i, sum);
+        }
+#else
         for (int i = 0; i < NN_H; i++) d[i] += r[i];
+#endif
     }
     acc.computed[persp] = true;
 }
@@ -97,6 +108,24 @@ void update(Accumulator& dst, const Accumulator& src, int persp, int ksq) {
     } else {
         const i16* __restrict a0 = &W0[featIdx(persp, ksq, dst.addPc[0], dst.addSq[0])];
         const i16* __restrict s0 = &W0[featIdx(persp, ksq, dst.subPc[0], dst.subSq[0])];
+#if FABLE_ARM_NEON
+        static_assert(NN_H % 8 == 0, "NEON NNUE width must be divisible by eight");
+        const i16* __restrict a1 = dst.nAdd > 1
+            ? &W0[featIdx(persp, ksq, dst.addPc[1], dst.addSq[1])] : nullptr;
+        const i16* __restrict s1 = dst.nSub > 1
+            ? &W0[featIdx(persp, ksq, dst.subPc[1], dst.subSq[1])] : nullptr;
+        for (int i = 0; i < NN_H; i += 8) {
+            int16x8_t value = vaddq_s16(vld1q_s16(s + i), vld1q_s16(a0 + i));
+            value = vsubq_s16(value, vld1q_s16(s0 + i));
+            if (dst.nAdd == 1 && dst.nSub > 1)
+                value = vsubq_s16(value, vld1q_s16(s1 + i));
+            else if (dst.nAdd > 1) {
+                value = vaddq_s16(value, vld1q_s16(a1 + i));
+                value = vsubq_s16(value, vld1q_s16(s1 + i));
+            }
+            vst1q_s16(d + i, value);
+        }
+#else
         if (dst.nAdd == 1 && dst.nSub == 1) {
             for (int i = 0; i < NN_H; i++) d[i] = s[i] + a0[i] - s0[i];
         } else if (dst.nAdd == 1) {
@@ -107,6 +136,7 @@ void update(Accumulator& dst, const Accumulator& src, int persp, int ksq) {
             const i16* __restrict s1 = &W0[featIdx(persp, ksq, dst.subPc[1], dst.subSq[1])];
             for (int i = 0; i < NN_H; i++) d[i] = s[i] + a0[i] - s0[i] + a1[i] - s1[i];
         }
+#endif
     }
     dst.computed[persp] = true;
 }
@@ -115,6 +145,47 @@ int evaluate(const Accumulator& acc, const Position& pos) {
     const int stm = pos.side;
     const int bucket = std::min((popcount(pos.occ()) - 2) / 4, NN_BUCKETS - 1);
     const i16* w = W1[bucket];
+#if FABLE_ARM_NEON
+    // Exact AdvSIMD equivalent of the existing AVX2 SCReLU output path.
+    // The signed 16-bit high-half square and signed 16x16 products matter;
+    // SDOT/UDOT operate on 8-bit lanes and are not a drop-in replacement.
+    static_assert(NN_H % 8 == 0, "NEON NNUE width must be divisible by eight");
+    const int16x8_t zero = vdupq_n_s16(0);
+    const int16x8_t qa = vdupq_n_s16(QA);
+    int32x4_t sum = vdupq_n_s32(0);
+    const i16* a = acc.v[stm];
+    for (int i = 0; i < NN_H; i += 8) {
+        int16x8_t v = vminq_s16(vmaxq_s16(vld1q_s16(a + i), zero), qa);
+        v = vshlq_n_s16(v, 4);
+        int16x8_t wv = vld1q_s16(w + i);
+        int32x4_t squareLo = vmull_s16(vget_low_s16(v), vget_low_s16(v));
+        int32x4_t squareHi = vmull_s16(vget_high_s16(v), vget_high_s16(v));
+        int16x8_t activation = vcombine_s16(vshrn_n_s32(squareLo, 16),
+                                            vshrn_n_s32(squareHi, 16));
+        int32x4_t productLo = vmull_s16(vget_low_s16(activation), vget_low_s16(wv));
+        int32x4_t productHi = vmull_s16(vget_high_s16(activation), vget_high_s16(wv));
+        int32x2_t pairsLo = vpadd_s32(vget_low_s32(productLo), vget_high_s32(productLo));
+        int32x2_t pairsHi = vpadd_s32(vget_low_s32(productHi), vget_high_s32(productHi));
+        sum = vaddq_s32(sum, vcombine_s32(pairsLo, pairsHi));
+    }
+    a = acc.v[stm ^ 1];
+    w += NN_H;
+    for (int i = 0; i < NN_H; i += 8) {
+        int16x8_t v = vminq_s16(vmaxq_s16(vld1q_s16(a + i), zero), qa);
+        v = vshlq_n_s16(v, 4);
+        int16x8_t wv = vld1q_s16(w + i);
+        int32x4_t squareLo = vmull_s16(vget_low_s16(v), vget_low_s16(v));
+        int32x4_t squareHi = vmull_s16(vget_high_s16(v), vget_high_s16(v));
+        int16x8_t activation = vcombine_s16(vshrn_n_s32(squareLo, 16),
+                                            vshrn_n_s32(squareHi, 16));
+        int32x4_t productLo = vmull_s16(vget_low_s16(activation), vget_low_s16(wv));
+        int32x4_t productHi = vmull_s16(vget_high_s16(activation), vget_high_s16(wv));
+        int32x2_t pairsLo = vpadd_s32(vget_low_s32(productLo), vget_high_s32(productLo));
+        int32x2_t pairsHi = vpadd_s32(vget_low_s32(productHi), vget_high_s32(productHi));
+        sum = vaddq_s32(sum, vcombine_s32(pairsLo, pairsHi));
+    }
+    i64 total = static_cast<i64>(vaddvq_s32(sum));
+#else
     const __m256i zero = _mm256_setzero_si256(), qa = _mm256_set1_epi16(QA);
     __m256i sum = zero;
     const i16* a = acc.v[stm];
@@ -134,6 +205,7 @@ int evaluate(const Accumulator& acc, const Position& pos) {
     s128 = _mm_add_epi32(s128, _mm_shuffle_epi32(s128, 0x4E));
     s128 = _mm_add_epi32(s128, _mm_shuffle_epi32(s128, 0xB1));
     i64 total = _mm_cvtsi128_si32(s128);
+#endif
     i64 out = (total + B1[bucket]) * SCALE / ((i64)QACT * QB);
     return (int)out;
 }

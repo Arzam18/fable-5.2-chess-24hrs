@@ -3,7 +3,17 @@
 #include <cstring>
 #include <cstdlib>
 #include <string>
-#include <immintrin.h>
+#if defined(_WIN32)
+    #include <malloc.h>
+#endif
+// Native SIMD headers are selected for the target architecture.
+#if defined(__aarch64__) || defined(__ARM_NEON) || defined(__ARM_NEON__)
+    #include <arm_neon.h>
+    #define FABLE_ARM_NEON 1
+#else
+    #include <immintrin.h>
+    #define FABLE_ARM_NEON 0
+#endif
 
 typedef uint64_t u64; typedef uint32_t u32; typedef uint16_t u16; typedef uint8_t u8;
 typedef int64_t i64; typedef int32_t i32; typedef int16_t i16; typedef int8_t i8;
