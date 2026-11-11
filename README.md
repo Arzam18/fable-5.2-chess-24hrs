@@ -267,7 +267,8 @@ The engine had no time loss, disconnect, illegal move or fastchess warning in an
 ### Conditions
 
 fastchess 1.8.2, 10 s + 0.1 s, `timemargin=200`, one thread, 64 MB hash, UHO openings (8 plies, both
-colours), 12 concurrent games on an Intel Core Ultra 9 285H. Games were adjudicated: resign after 3
+colours), 12 concurrent games on an Intel Core Ultra 9 285H. (The benchmark rules announced 256 MB
+hash; the rating run used 64 MB for every engine.) Games were adjudicated: resign after 3
 moves at ±600 cp from both engines, draw after move 40 with 8 moves inside ±20 cp, 250 moves maximum.
 Ratings come from an anchored maximum-likelihood fit in which the reference engines are fixed at their
 CCRL Blitz ratings and every game involves at least one of the AI-written engines.
@@ -325,7 +326,7 @@ Against the other eight anchors the implied rating runs from 3508 (Elixir) to 36
 
 I predicted about 3590 (3550–3630) from matches against Stash 37 alone. The official 3542 is just below
 that range; the fit without the two off-scale anchors, 3571, is inside it. The 79.0% scored against
-Stash 37 here matches what I measured (72.5–74.5%), and it is the most favourable of all the anchors:
+Stash 37 here is higher than what I measured (72.5–74.5%), and it is the most favourable of all the anchors:
 the Stash ladder flatters an engine that was tested only against it, which is the transfer error the
 estimate warned about and under-sized. Strength against the wider field is about 20–50 Elo lower than
 the Stash-only figure.
