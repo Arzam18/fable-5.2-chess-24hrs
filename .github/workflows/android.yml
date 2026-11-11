@@ -1,0 +1,47 @@
+name: Build Fable 5.2 for Android ARM64 NEON
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install Android NDK r27c
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 2 \\
+            https://dl.google.com/android/repository/android-ndk-r27c-linux.zip \\
+            -o "$RUNNER_TEMP/android-ndk-r27c-linux.zip"
+          echo '090e8083a715fdb1a3e402d0763c388abb03fb4e  '"$RUNNER_TEMP/android-ndk-r27c-linux.zip" | sha1sum -c -
+          mkdir -p "$RUNNER_TEMP/android-ndk"
+          unzip -q "$RUNNER_TEMP/android-ndk-r27c-linux.zip" -d "$RUNNER_TEMP/android-ndk"
+          echo "ANDROID_NDK_HOME=$RUNNER_TEMP/android-ndk/android-ndk-r27c" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=$RUNNER_TEMP/android-ndk/android-ndk-r27c" >> "$GITHUB_ENV"
+          echo "$RUNNER_TEMP/android-ndk/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin" >> "$GITHUB_PATH"
+
+      - name: Build engine (NEON)
+        shell: bash
+        run: |
+          set -euo pipefail
+          export CXX="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++"
+          bash scripts/build-android.sh
+
+      - name: Verify ARM64 and NEON instructions
+        shell: bash
+        run: bash scripts/verify-android.sh
+
+      - name: Upload engine only
+        uses: actions/upload-artifact@v4
+        with:
+          name: Fable-5.2-Android-ARM64-NEON
+          path: source/build/fable-5.2-android-arm64-neon
+          if-no-files-found: error
+          retention-days: 30
